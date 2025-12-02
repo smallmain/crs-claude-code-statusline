@@ -1,0 +1,26 @@
+{
+  "name": "crs-claude-code-statusline",
+  "version": "1.0.0",
+  "description": "Claude Code StatusLine for displaying Claude Relay Service account usage information.",
+  "main": "src/index.js",
+  "bin": {
+    "crs-statusline": "src/cli.js"
+  },
+  "keywords": [
+    "claude",
+    "claude-code",
+    "statusline",
+    "claude-relay-service",
+    "crs"
+  ],
+  "repository": "github:smallmain/crs-claude-code-statusline",
+  "bugs": "https://github.com/smallmain/crs-claude-code-statusline/issues",
+  "author": "SmallMain",
+  "license": "MIT",
+  "engines": {
+    "node": ">=16.0.0"
+  },
+  "files": [
+    "src"
+  ]
+}
