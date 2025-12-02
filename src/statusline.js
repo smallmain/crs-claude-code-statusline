@@ -51,20 +51,82 @@ function formatLimit(used, limit) {
 }
 
 /**
+ * Find the most constrained limit (smallest remaining amount)
+ * @param {Object} daily - Daily usage info with cost.used and cost.total
+ * @param {Object} total - Total usage info with cost.used and cost.total
+ * @returns {{used: number, limit: number, remaining: number, type: string} | null}
+ */
+function getMostConstrainedLimit(daily, total) {
+  const limits = [];
+
+  // Daily limit
+  if (daily.cost.total > 0) {
+    limits.push({
+      used: daily.cost.used,
+      limit: daily.cost.total,
+      remaining: daily.cost.total - daily.cost.used,
+      type: 'daily',
+    });
+  }
+
+  // Total limit
+  if (total.cost.total > 0) {
+    limits.push({
+      used: total.cost.used,
+      limit: total.cost.total,
+      remaining: total.cost.total - total.cost.used,
+      type: 'total',
+    });
+  }
+
+  if (limits.length === 0) {
+    return null; // All unlimited
+  }
+
+  // Return the one with smallest remaining
+  return limits.reduce((min, curr) =>
+    curr.remaining < min.remaining ? curr : min,
+  );
+}
+
+/**
+ * Format the "Used credit" display
+ * @param {Object} daily - Daily usage info
+ * @param {Object} total - Total usage info
+ * @returns {string}
+ */
+function formatUsedCredit(daily, total) {
+  const mostConstrained = getMostConstrainedLimit(daily, total);
+
+  if (!mostConstrained) {
+    return 'Used credit: Unlimited';
+  }
+
+  const percentage = (
+    (mostConstrained.used / mostConstrained.limit) *
+    100
+  ).toFixed(1);
+  return `Used credit: ${percentage}% ($${formatCost(
+    mostConstrained.used,
+  )}/$${formatCost(mostConstrained.limit)})`;
+}
+
+/**
  * Check if a usage part should be shown based on config and limit
  * @param {string} configValue - 'auto', 'enable', or 'disable'
  * @param {number} limit - The limit value (0 means unlimited)
+ * @param {boolean} forceAutoShow - If true, show even in auto mode without limit
  * @returns {boolean}
  */
-function shouldShowUsage(configValue, limit) {
+function shouldShowUsage(configValue, limit, forceAutoShow = false) {
   if (configValue === DisplayOption.DISABLE) {
     return false;
   }
   if (configValue === DisplayOption.ENABLE) {
     return true;
   }
-  // Auto: show only when there's a limit
-  return limit > 0;
+  // Auto: show when there's a limit, or when forceAutoShow is true
+  return limit > 0 || forceAutoShow;
 }
 
 function formatStatusLine(usageInfo, displayConfig) {
@@ -75,20 +137,28 @@ function formatStatusLine(usageInfo, displayConfig) {
 
   const { daily, monthly, total } = usageInfo;
 
+  const showUsedCredit = displayConfig.showUsedCredit;
+
   // Determine which parts to show
   const showDaily = shouldShowUsage(
     displayConfig.showDailyUsage,
     daily.cost.total,
+    showUsedCredit,
   );
   // Monthly has no limit
-  const showMonthly = shouldShowUsage(displayConfig.showMonthlyUsage, 0);
+  const showMonthly = shouldShowUsage(
+    displayConfig.showMonthlyUsage,
+    0,
+    showUsedCredit,
+  );
   const showTotal = shouldShowUsage(
     displayConfig.showTotalUsage,
     total.cost.total,
+    showUsedCredit,
   );
 
   // If nothing to show, return empty string
-  if (!showDaily && !showMonthly && !showTotal) {
+  if (!showUsedCredit && !showDaily && !showMonthly && !showTotal) {
     return '';
   }
 
@@ -107,12 +177,20 @@ function formatStatusLine(usageInfo, displayConfig) {
 
   const parts = [];
 
-  // Order: Daily | Monthly | Total
+  // Order: Used credit | Daily | Monthly | Total
+
+  if (showUsedCredit) {
+    const usedCreditPart = formatUsedCredit(daily, total);
+    parts.push(usedCreditPart);
+  }
+
   if (showDaily) {
-    const dailyPart = `Daily: ${formatLimit(
-      daily.cost.used,
-      daily.cost.total,
-    )}, ${formatTokens(daily.tokens)}`;
+    const dailyPart = showUsedCredit
+      ? `Daily: $${formatCost(daily.cost.used)}, ${formatTokens(daily.tokens)}`
+      : `Daily: ${formatLimit(
+          daily.cost.used,
+          daily.cost.total,
+        )}, ${formatTokens(daily.tokens)}`;
     parts.push(dailyPart);
   }
 
@@ -124,10 +202,12 @@ function formatStatusLine(usageInfo, displayConfig) {
   }
 
   if (showTotal) {
-    const totalPart = `Total: ${formatLimit(
-      total.cost.used,
-      total.cost.total,
-    )}`;
+    const totalPart = showUsedCredit
+      ? `Total: $${formatCost(total.cost.used)}, ${formatTokens(total.tokens)}`
+      : `Total: ${formatLimit(
+          total.cost.used,
+          total.cost.total,
+        )}, ${formatTokens(total.tokens)}`;
     parts.push(totalPart);
   }
 

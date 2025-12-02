@@ -18,6 +18,7 @@ const DisplayOption = {
 
 // Default display configuration
 const DEFAULT_DISPLAY_CONFIG = {
+  showUsedCredit: true,
   showDailyUsage: DisplayOption.AUTO,
   showMonthlyUsage: DisplayOption.AUTO,
   showTotalUsage: DisplayOption.AUTO,
@@ -87,7 +88,7 @@ function isConfigured() {
 
 /**
  * Get display configuration
- * @returns {{showDailyUsage: string, showMonthlyUsage: string, showTotalUsage: string, useColors: boolean}}
+ * @returns {{showUsedCredit: boolean, showDailyUsage: string, showMonthlyUsage: string, showTotalUsage: string, useColors: boolean}}
  */
 function getDisplayConfig() {
   const config = readConfig();
@@ -99,7 +100,7 @@ function getDisplayConfig() {
 
 /**
  * Set display configuration
- * @param {{showDailyUsage?: string, showMonthlyUsage?: string, showTotalUsage?: string, useColors?: boolean}} displayConfig
+ * @param {{showUsedCredit?: boolean, showDailyUsage?: string, showMonthlyUsage?: string, showTotalUsage?: string, useColors?: boolean}} displayConfig
  */
 function setDisplayConfig(displayConfig) {
   const config = readConfig();

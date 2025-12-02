@@ -184,12 +184,18 @@ async function configureDisplay() {
     { label: 'Disable', value: DisplayOption.DISABLE },
   ];
 
-  const colorOptions = [
+  const switchOptions = [
     { label: 'Enable', value: true },
     { label: 'Disable', value: false },
   ];
 
   const items = [
+    {
+      key: 'showUsedCredit',
+      label: 'Show Used Credit',
+      options: switchOptions,
+      currentValue: displayConfig.showUsedCredit,
+    },
     {
       key: 'showDailyUsage',
       label: 'Show Daily Usage',
@@ -211,7 +217,7 @@ async function configureDisplay() {
     {
       key: 'useColors',
       label: 'Use Colors',
-      options: colorOptions,
+      options: switchOptions,
       currentValue: displayConfig.useColors,
     },
   ];
@@ -385,6 +391,11 @@ function showConfig() {
   );
   console.log('');
   console.log('Display Settings:');
+  console.log(
+    `  Show Used Credit: ${
+      displayConfig.showUsedCredit ? 'Enable' : 'Disable'
+    }`,
+  );
   console.log(
     `  Show Daily Usage: ${formatDisplayOptionLabel(
       displayConfig.showDailyUsage,

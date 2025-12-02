@@ -24,6 +24,7 @@ let lastFetchTime = 0;
 /**
  * @typedef {Object} TotalUsage
  * @property {CostInfo} cost - Total cost information
+ * @property {number} tokens - Total tokens used
  */
 
 /**
@@ -167,6 +168,7 @@ async function fetchUsageData(baseUrl, apiKey) {
         used: limits.currentTotalCost || 0,
         total: limits.totalCostLimit || 0,
       },
+      tokens: usage?.total?.allTokens || 0,
     },
   };
 }
